@@ -1,0 +1,17 @@
+[
+  {
+    "ticker": "GOOG",
+    "name": "Alphabet Class C",
+    "market": "NASDAQ"
+  },
+  {
+    "ticker": "CRCL",
+    "name": "Circle Internet Group",
+    "market": "NYSE"
+  },
+  {
+    "ticker": "TSLA",
+    "name": "Tesla",
+    "market": "NASDAQ"
+  }
+]

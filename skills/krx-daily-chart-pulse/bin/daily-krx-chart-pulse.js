@@ -261,6 +261,9 @@ async function main() {
     process.stdout.write(renderHermesReport(summary));
   } else if (args.emitHermesSendBatches) {
     console.log(JSON.stringify(buildHermesSendBatches(summary), null, 2));
+    for (const result of results.filter((result) => !result.ok)) {
+      console.error(`[fail] ${result.ticker} ${result.name}: ${result.error}`);
+    }
   } else {
     console.error(`[summary] ${okCount}/${results.length} succeeded; output ${summary.outputDir}`);
   }

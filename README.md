@@ -1,6 +1,6 @@
 # krx-daily-chart-pulse
 
-Daily KRX chart pulse skill for Hermes/OpenClaw. The repository generates per-ticker chart artifacts and Telegram-ready payload files without storing or reading Telegram secrets. Delivery is delegated to Hermes.
+Daily KRX and US chart pulse skills for Hermes/OpenClaw. The repository generates per-ticker chart artifacts and Telegram-ready payload files without storing or reading Telegram secrets. Delivery is delegated to Hermes.
 
 Telegram image attachments use the vendored `ray5273/stock-analysis-skill` `kr-stock-analysis` `chart-basics.js` renderer: main trend, overlay, and momentum charts.
 
@@ -8,6 +8,7 @@ Telegram image attachments use the vendored `ray5273/stock-analysis-skill` `kr-s
 
 ```bash
 bash scripts/smoke-test.sh
+bash scripts/smoke-test-us.sh
 ```
 
 Run manually:
@@ -17,12 +18,18 @@ node skills/krx-daily-chart-pulse/bin/daily-krx-chart-pulse.js \
   --watchlist examples/watchlist.example.json \
   --dry-run \
   --emit-hermes-send-batches
+
+node skills/us-daily-chart-pulse/bin/daily-us-chart-pulse.js \
+  --watchlist examples/us-watchlist.example.json \
+  --dry-run \
+  --emit-hermes-send-batches
 ```
 
 Default artifacts are written to:
 
 ```text
 .tmp/portfolio-pulse/YYYY-MM-DD/<ticker>/
+.tmp/us-portfolio-pulse/YYYY-MM-DD/<ticker>/
 ```
 
 Each ticker directory contains:
@@ -55,6 +62,8 @@ Use `--emit-payload` for machine-readable automation. Use `--emit-hermes-report`
 
 When `--watchlist` is omitted, the CLI resolves the watchlist in this order: `KRX_WATCHLIST`, `$HERMES_HOME/config/krx-daily-chart-pulse/watchlist.json`, then `examples/watchlist.example.json`. The repo example fallback is for development and tests; Hermes cron should use the config watchlist.
 
+The US skill has the same CLI contract under `daily-us-chart-pulse`. Its omitted watchlist resolution is `US_WATCHLIST`, `$HERMES_HOME/config/us-daily-chart-pulse/watchlist.json`, then `examples/us-watchlist.example.json`. Live US rows are fetched from Yahoo chart JSON without an API key, with Nasdaq historical JSON as the fallback; dry-run mode stays fully local.
+
 ## Watchlist Format
 
 ```json
@@ -73,6 +82,7 @@ Required fields are `ticker` and `name`. Validation happens before any network c
 
 ```bash
 bash scripts/install-hermes-skill.sh
+bash scripts/install-us-hermes-skill.sh
 hermes skills list
 ```
 
@@ -82,27 +92,49 @@ The install script copies both the skill and the cron send script into Hermes:
 - cron script: `~/.hermes/scripts/hermes-send-krx-batches.py`
 - watchlist config: `~/.hermes/config/krx-daily-chart-pulse/watchlist.json`
 
+The US install script copies:
+
+- skill: `~/.hermes/skills/us-daily-chart-pulse`
+- cron script: `~/.hermes/scripts/hermes-send-us-batches.py`
+- watchlist config: `~/.hermes/config/us-daily-chart-pulse/watchlist.json`
+
 The install script creates `~/.hermes/config/krx-daily-chart-pulse/`. If `watchlist.json` does not exist and `examples/watchlist.local.json` exists, it copies that local file once as the initial config watchlist. Existing config watchlists are never overwritten. If there is no local seed, the installer copies only `watchlist.example.json` as a template and does not create a real portfolio watchlist.
 
 The cron send script uses `$HERMES_HOME/config/krx-daily-chart-pulse/watchlist.json` by default and writes artifacts under `$HERMES_HOME/artifacts/krx-daily-chart-pulse`. `KRX_WATCHLIST` can override the watchlist; relative override paths are resolved from `$HERMES_HOME/config/krx-daily-chart-pulse/`.
 
+The US cron send script uses `$HERMES_HOME/config/us-daily-chart-pulse/watchlist.json` by default and writes artifacts under `$HERMES_HOME/artifacts/us-daily-chart-pulse`. `US_WATCHLIST`, `US_DRY_RUN`, and `US_DATE` are supported for overrides and tests.
+
 Example cron:
 
 ```bash
-hermes cron create "0 17 * * 1-5" \
+hermes cron create \
   --name krx-daily-chart-pulse \
   --deliver local \
   --script hermes-send-krx-batches.py \
   --skill krx-daily-chart-pulse \
   --workdir "$HERMES_HOME" \
+  "0 17 * * 1-5" \
+  "Read the Script Output JSON. Return its summary field exactly as the final local response. If failures is non-empty, return the summary followed by the first failure ticker and error."
+```
+
+Example US cron:
+
+```bash
+hermes cron create \
+  --name us-daily-chart-pulse \
+  --deliver local \
+  --script hermes-send-us-batches.py \
+  --skill us-daily-chart-pulse \
+  --workdir "$HERMES_HOME" \
+  "0 7 * * 2-6" \
   "Read the Script Output JSON. Return its summary field exactly as the final local response. If failures is non-empty, return the summary followed by the first failure ticker and error."
 ```
 
 Then run the returned job id:
 
 ```bash
-hermes cron run <job_id> --accept-hooks
-hermes cron tick --accept-hooks
+hermes --accept-hooks cron run <job_id>
+hermes --accept-hooks cron tick
 ```
 
 The cron job stays as one Hermes job. Current Hermes cron sessions disable the interactive `messaging` toolset, so `scripts/hermes-send-krx-batches.py` runs as the cron pre-run script and calls Hermes' own `send_message` implementation sequentially for each ticker. Each call sends one text body plus three `MEDIA:/absolute/path/file.png` lines, which Hermes converts to native image attachments. The final cron response is local-only, for example `Sent 5/5 ticker batches`, so Telegram does not receive a duplicate final report.

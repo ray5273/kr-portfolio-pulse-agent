@@ -10,6 +10,18 @@ def hermes_home() -> Path:
     return Path(os.environ.get("HERMES_HOME", str(Path.home() / ".hermes"))).expanduser()
 
 
+def maybe_reexec_with_hermes_python() -> None:
+    hermes_python = hermes_home() / "hermes-agent/venv/bin/python3"
+    if os.environ.get("HERMES_SEND_REEXECED") == "1" or not hermes_python.exists():
+        return
+    if Path(sys.executable).resolve() == hermes_python.resolve():
+        return
+
+    env = os.environ.copy()
+    env["HERMES_SEND_REEXECED"] = "1"
+    os.execve(str(hermes_python), [str(hermes_python), *sys.argv], env)
+
+
 def config_dir() -> Path:
     return hermes_home() / "config/krx-daily-chart-pulse"
 
@@ -112,4 +124,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    maybe_reexec_with_hermes_python()
     raise SystemExit(main())
