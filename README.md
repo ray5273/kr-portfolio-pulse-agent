@@ -1,6 +1,6 @@
-# krx-daily-chart-pulse
+# portfolio-pulse-agent
 
-Daily KRX and US chart pulse skills for Hermes/OpenClaw. The repository generates per-ticker chart artifacts and Telegram-ready payload files without storing or reading Telegram secrets. Delivery is delegated to Hermes.
+Portfolio pulse agent for daily KRX and US chart pulse skills on Hermes/OpenClaw. The repository generates per-ticker chart artifacts and Telegram-ready payload files without storing or reading Telegram secrets. Delivery is delegated to Hermes.
 
 Telegram image attachments use the vendored `ray5273/stock-analysis-skill` `kr-stock-analysis` `chart-basics.js` renderer: main trend, overlay, and momentum charts.
 
