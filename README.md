@@ -64,6 +64,37 @@ When `--watchlist` is omitted, the CLI resolves the watchlist in this order: `KR
 
 The US skill has the same CLI contract under `daily-us-chart-pulse`. Its omitted watchlist resolution is `US_WATCHLIST`, `$HERMES_HOME/config/us-daily-chart-pulse/watchlist.json`, then `examples/us-watchlist.example.json`. Live US rows are fetched from Yahoo chart JSON without an API key, with Nasdaq historical JSON as the fallback; dry-run mode stays fully local.
 
+## Watchlist Curator
+
+Use `watchlist-curator` to turn loose add requests into confirmed KRX/US watchlist entries. It proposes first and writes only after an explicit apply step:
+
+```bash
+node skills/watchlist-curator/bin/watchlist-curator.js propose \
+  --input "삼성전자랑 Circle 추가해줘" \
+  --watchlist-krx examples/watchlist.example.json \
+  --watchlist-us examples/us-watchlist.example.json \
+  --offline
+```
+
+`propose` prints a Korean `humanSummary`, a `confirmationPrompt`, and, only when every new entry is deterministic, an exact `applyCommand`. After reviewing and confirming the exact entries, run that apply command unchanged. For structured debugging, use `propose --json` or `resolve`.
+
+```bash
+node skills/watchlist-curator/bin/watchlist-curator.js apply \
+  --watchlist-krx /path/to/krx/watchlist.json \
+  --watchlist-us /path/to/us/watchlist.json \
+  --entries '[{"ticker":"CRCL","name":"Circle Internet Group","market":"NYSE"}]'
+```
+
+`apply` also accepts a full resolver payload through stdin or `--from-resolve <path>`. Payloads with `okToApply=false`, `ambiguous`, or `unresolved` are rejected and never write to a watchlist.
+
+Check a Hermes install without changing watchlists:
+
+```bash
+node skills/watchlist-curator/bin/watchlist-curator.js doctor
+```
+
+When paths are omitted, the curator uses `$HERMES_HOME/config/krx-daily-chart-pulse/watchlist.json` and `$HERMES_HOME/config/us-daily-chart-pulse/watchlist.json`.
+
 ## Watchlist Format
 
 ```json
@@ -83,6 +114,7 @@ Required fields are `ticker` and `name`. Validation happens before any network c
 ```bash
 bash scripts/install-hermes-skill.sh
 bash scripts/install-us-hermes-skill.sh
+bash scripts/install-watchlist-curator-skill.sh
 hermes skills list
 ```
 
@@ -97,6 +129,13 @@ The US install script copies:
 - skill: `~/.hermes/skills/us-daily-chart-pulse`
 - cron script: `~/.hermes/scripts/hermes-send-us-batches.py`
 - watchlist config: `~/.hermes/config/us-daily-chart-pulse/watchlist.json`
+
+The watchlist curator install script copies:
+
+- skill: `~/.hermes/skills/watchlist-curator`
+- config directories for both KRX and US watchlists
+
+It never creates or overwrites real `watchlist.json` files.
 
 The install script creates `~/.hermes/config/krx-daily-chart-pulse/`. If `watchlist.json` does not exist and `examples/watchlist.local.json` exists, it copies that local file once as the initial config watchlist. Existing config watchlists are never overwritten. If there is no local seed, the installer copies only `watchlist.example.json` as a template and does not create a real portfolio watchlist.
 

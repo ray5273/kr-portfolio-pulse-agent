@@ -1,0 +1,100 @@
+[
+  {
+    "ticker": "005930",
+    "name": "Samsung Electronics",
+    "market": "KOSPI",
+    "country": "KR",
+    "aliases": ["samsung electronics", "samsung", "삼성전자", "삼성"]
+  },
+  {
+    "ticker": "066970",
+    "name": "L&F",
+    "market": "KOSDAQ",
+    "country": "KR",
+    "aliases": ["l&f", "엘앤에프", "엘앤F", "엘앤"]
+  },
+  {
+    "ticker": "000660",
+    "name": "SK hynix",
+    "market": "KOSPI",
+    "country": "KR",
+    "aliases": ["sk hynix", "hynix", "sk하이닉스", "하이닉스"]
+  },
+  {
+    "ticker": "035420",
+    "name": "NAVER",
+    "market": "KOSPI",
+    "country": "KR",
+    "aliases": ["naver", "네이버"]
+  },
+  {
+    "ticker": "005380",
+    "name": "Hyundai Motor",
+    "market": "KOSPI",
+    "country": "KR",
+    "aliases": ["hyundai motor", "hyundai", "현대차", "현대자동차"]
+  },
+  {
+    "ticker": "GOOG",
+    "name": "Alphabet Class C",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["goog", "alphabet class c", "alphabet", "google"]
+  },
+  {
+    "ticker": "GOOGL",
+    "name": "Alphabet Class A",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["googl", "alphabet class a"]
+  },
+  {
+    "ticker": "CRCL",
+    "name": "Circle Internet Group",
+    "market": "NYSE",
+    "country": "US",
+    "aliases": ["crcl", "circle internet group", "circle"]
+  },
+  {
+    "ticker": "MU",
+    "name": "Micron Technology",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["mu", "micron technology", "micron"]
+  },
+  {
+    "ticker": "TSLA",
+    "name": "Tesla",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["tsla", "tesla"]
+  },
+  {
+    "ticker": "NVDA",
+    "name": "NVIDIA",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["nvda", "nvidia"]
+  },
+  {
+    "ticker": "AAPL",
+    "name": "Apple",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["aapl", "apple"]
+  },
+  {
+    "ticker": "MSFT",
+    "name": "Microsoft",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["msft", "microsoft"]
+  },
+  {
+    "ticker": "AMZN",
+    "name": "Amazon.com",
+    "market": "NASDAQ",
+    "country": "US",
+    "aliases": ["amzn", "amazon", "amazon.com"]
+  }
+]
