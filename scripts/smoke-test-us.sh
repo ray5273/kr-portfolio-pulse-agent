@@ -63,13 +63,13 @@ node --input-type=module -e '
   if (actualTickers.join(",") !== expectedTickers.join(",")) {
     throw new Error(`Unexpected batch order: ${actualTickers.join(",")}`);
   }
-  const expectedMedia = ["chart.png", "chart-overlay.png", "chart-momentum.png"];
+  const expectedMedia = ["chart.png", "chart-overlay.png", "chart-momentum.png", "chart-structure.png", "chart-pattern.png"];
   for (const batch of batches) {
     if (!batch.name || typeof batch.text !== "string" || !batch.text.includes(batch.ticker) || !batch.text.includes("종가")) {
       throw new Error(`Invalid batch text for ${batch.ticker}`);
     }
-    if (!Array.isArray(batch.media) || batch.media.length !== 3) {
-      throw new Error(`Expected 3 media files for ${batch.ticker}`);
+    if (!Array.isArray(batch.media) || batch.media.length !== expectedMedia.length) {
+      throw new Error(`Expected ${expectedMedia.length} media files for ${batch.ticker}`);
     }
     batch.media.forEach((mediaPath, index) => {
       if (!path.isAbsolute(mediaPath)) {
@@ -101,6 +101,10 @@ for ticker in GOOG CRCL MU TSLA; do
     chart.png \
     chart-overlay.png \
     chart-momentum.png \
+    chart-structure.png \
+    chart-pattern.png \
+    chart-structure-zones.csv \
+    chart-pattern-waves.csv \
     result.json; do
     if [[ ! -s "$ticker_dir/$file" ]]; then
       echo "Missing artifact: $ticker_dir/$file" >&2
@@ -111,7 +115,20 @@ for ticker in GOOG CRCL MU TSLA; do
     echo "Missing Hermes report section for ticker: $ticker" >&2
     exit 1
   fi
-  for chart in chart.png chart-overlay.png chart-momentum.png; do
+  for phrase in \
+    "주가 추세 차트" \
+    "보조지표 차트" \
+    "모멘텀 차트" \
+    "구조 차트" \
+    "패턴/파동 차트" \
+    "지지/저항 Zone" \
+    "패턴/파동 후보"; do
+    if ! grep -Fq "$phrase" "$ticker_dir/chart-analysis.md"; then
+      echo "Missing chart analysis phrase for $ticker: $phrase" >&2
+      exit 1
+    fi
+  done
+  for chart in chart.png chart-overlay.png chart-momentum.png chart-structure.png chart-pattern.png; do
     if ! grep -Fqx "MEDIA:$ticker_dir/$chart" "$HERMES_REPORT"; then
       echo "Missing Hermes MEDIA line: MEDIA:$ticker_dir/$chart" >&2
       exit 1
@@ -120,8 +137,8 @@ for ticker in GOOG CRCL MU TSLA; do
 done
 
 media_count="$(grep -Ec '^MEDIA:/.+\.png$' "$HERMES_REPORT")"
-if [[ "$media_count" != "12" ]]; then
-  echo "Expected 12 Hermes MEDIA PNG lines, found $media_count" >&2
+if [[ "$media_count" != "20" ]]; then
+  echo "Expected 20 Hermes MEDIA PNG lines, found $media_count" >&2
   exit 1
 fi
 
@@ -172,7 +189,16 @@ node --input-type=module -e '
     throw new Error(`Unexpected sender order: ${batches.map((batch) => batch.ticker).join(",")}`);
   }
   const artifactRoot = path.join(hermesHome, "artifacts/us-daily-chart-pulse", runDate);
+  const expectedMedia = ["chart.png", "chart-overlay.png", "chart-momentum.png", "chart-structure.png", "chart-pattern.png"];
   for (const batch of batches) {
+    if (!Array.isArray(batch.media) || batch.media.length !== expectedMedia.length) {
+      throw new Error(`Expected ${expectedMedia.length} sender media files for ${batch.ticker}`);
+    }
+    batch.media.forEach((mediaPath, index) => {
+      if (path.basename(mediaPath) !== expectedMedia[index]) {
+        throw new Error(`Unexpected sender media order for ${batch.ticker}: ${batch.media.join(",")}`);
+      }
+    });
     for (const mediaPath of batch.media) {
       if (!mediaPath.startsWith(`${artifactRoot}${path.sep}`)) {
         throw new Error(`Sender media path is outside Hermes artifacts: ${mediaPath}`);

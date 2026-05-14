@@ -99,10 +99,17 @@ export function renderAnalysisMarkdown(analysis) {
 }
 
 export function renderMessage(analysis, artifactPaths) {
+  const charts = [
+    artifactPaths.main,
+    artifactPaths.overlay,
+    artifactPaths.momentum,
+    artifactPaths.structure,
+    artifactPaths.pattern
+  ].filter(Boolean);
   return [
     `${analysis.ticker} ${analysis.name}: ${signalLabel(analysis.signal)} (${analysis.score}/100)`,
     `종가 ${analysis.lastCloseText} (${analysis.changeText}), 모멘텀 ${analysis.momentumText}, RSI ${analysis.rsiText}, 거래량 ${analysis.volumeRatioText}.`,
-    `차트: ${artifactPaths.main}, ${artifactPaths.overlay}, ${artifactPaths.momentum}`
+    `차트: ${charts.join(", ")}`
   ].join("\n");
 }
 

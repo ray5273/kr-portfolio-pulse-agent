@@ -80,7 +80,9 @@ export async function writeTickerArtifacts({ item, rows, outputRoot, runDate, dr
   const artifactPaths = {
     main: path.join(tickerDir, "chart.png"),
     overlay: path.join(tickerDir, "chart-overlay.png"),
-    momentum: path.join(tickerDir, "chart-momentum.png")
+    momentum: path.join(tickerDir, "chart-momentum.png"),
+    structure: path.join(tickerDir, "chart-structure.png"),
+    pattern: path.join(tickerDir, "chart-pattern.png")
   };
 
   const chartDataPath = path.join(tickerDir, "chart-data.json");
@@ -105,7 +107,9 @@ export async function writeTickerArtifacts({ item, rows, outputRoot, runDate, dr
   const relativeArtifacts = {
     main: rel(process.cwd(), artifactPaths.main),
     overlay: rel(process.cwd(), artifactPaths.overlay),
-    momentum: rel(process.cwd(), artifactPaths.momentum)
+    momentum: rel(process.cwd(), artifactPaths.momentum),
+    structure: rel(process.cwd(), artifactPaths.structure),
+    pattern: rel(process.cwd(), artifactPaths.pattern)
   };
   const message = renderMessage(analysis, relativeArtifacts);
   const payload = {
@@ -124,6 +128,8 @@ export async function writeTickerArtifacts({ item, rows, outputRoot, runDate, dr
       { kind: "main-trend-chart", path: relativeArtifacts.main },
       { kind: "overlay-chart", path: relativeArtifacts.overlay },
       { kind: "momentum-chart", path: relativeArtifacts.momentum },
+      { kind: "structure-chart", path: relativeArtifacts.structure },
+      { kind: "pattern-wave-chart", path: relativeArtifacts.pattern },
       { kind: "analysis", path: rel(process.cwd(), path.join(tickerDir, "chart-analysis.md")) }
     ],
     meta: {
@@ -153,7 +159,9 @@ export async function writeTickerArtifacts({ item, rows, outputRoot, runDate, dr
       payload: rel(process.cwd(), path.join(tickerDir, "send-payload.json")),
       main: relativeArtifacts.main,
       overlay: relativeArtifacts.overlay,
-      momentum: relativeArtifacts.momentum
+      momentum: relativeArtifacts.momentum,
+      structure: relativeArtifacts.structure,
+      pattern: relativeArtifacts.pattern
     }
   };
   await writeJson(path.join(tickerDir, "result.json"), result);

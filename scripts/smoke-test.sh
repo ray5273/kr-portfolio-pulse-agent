@@ -71,7 +71,7 @@ node --input-type=module -e '
     throw new Error(`Unexpected batch order: ${actualTickers.join(",")}`);
   }
 
-  const expectedMedia = ["chart.png", "chart-overlay.png", "chart-momentum.png"];
+  const expectedMedia = ["chart.png", "chart-overlay.png", "chart-momentum.png", "chart-structure.png", "chart-pattern.png"];
   for (const batch of batches) {
     if (!batch.ticker || !batch.name || typeof batch.text !== "string") {
       throw new Error(`Invalid batch shape for ${batch.ticker || "unknown"}`);
@@ -79,8 +79,8 @@ node --input-type=module -e '
     if (!batch.text.includes(batch.ticker) || !batch.text.includes(batch.name) || !batch.text.includes("종가")) {
       throw new Error(`Batch text is missing ticker, name, or chart summary for ${batch.ticker}`);
     }
-    if (!Array.isArray(batch.media) || batch.media.length !== 3) {
-      throw new Error(`Expected 3 media files for ${batch.ticker}`);
+    if (!Array.isArray(batch.media) || batch.media.length !== expectedMedia.length) {
+      throw new Error(`Expected ${expectedMedia.length} media files for ${batch.ticker}`);
     }
     batch.media.forEach((mediaPath, index) => {
       if (!path.isAbsolute(mediaPath)) {
@@ -106,6 +106,10 @@ for ticker in 005930 066970; do
     chart.png \
     chart-overlay.png \
     chart-momentum.png \
+    chart-structure.png \
+    chart-pattern.png \
+    chart-structure-zones.csv \
+    chart-pattern-waves.csv \
     result.json; do
     if [[ ! -s "$ticker_dir/$file" ]]; then
       echo "Missing artifact: $ticker_dir/$file" >&2
@@ -116,6 +120,10 @@ for ticker in 005930 066970; do
     "주가 추세 차트" \
     "보조지표 차트" \
     "모멘텀 차트" \
+    "구조 차트" \
+    "패턴/파동 차트" \
+    "지지/저항 Zone" \
+    "패턴/파동 후보" \
     "MACD" \
     "ADX"; do
     if ! grep -Fq "$phrase" "$ticker_dir/chart-analysis.md"; then
@@ -127,7 +135,7 @@ for ticker in 005930 066970; do
     echo "Missing Hermes report section for ticker: $ticker" >&2
     exit 1
   fi
-  for chart in chart.png chart-overlay.png chart-momentum.png; do
+  for chart in chart.png chart-overlay.png chart-momentum.png chart-structure.png chart-pattern.png; do
     if ! grep -Fqx "MEDIA:$ticker_dir/$chart" "$HERMES_REPORT"; then
       echo "Missing Hermes MEDIA line: MEDIA:$ticker_dir/$chart" >&2
       exit 1
@@ -136,8 +144,8 @@ for ticker in 005930 066970; do
 done
 
 media_count="$(grep -Ec '^MEDIA:/.+\.png$' "$HERMES_REPORT")"
-if [[ "$media_count" != "6" ]]; then
-  echo "Expected 6 Hermes MEDIA PNG lines, found $media_count" >&2
+if [[ "$media_count" != "10" ]]; then
+  echo "Expected 10 Hermes MEDIA PNG lines, found $media_count" >&2
   exit 1
 fi
 
@@ -204,7 +212,16 @@ node --input-type=module -e '
     throw new Error(`Expected 2 sender batches, found ${Array.isArray(batches) ? batches.length : "non-array"}`);
   }
   const artifactRoot = path.join(hermesHome, "artifacts/krx-daily-chart-pulse", runDate);
+  const expectedMedia = ["chart.png", "chart-overlay.png", "chart-momentum.png", "chart-structure.png", "chart-pattern.png"];
   for (const batch of batches) {
+    if (!Array.isArray(batch.media) || batch.media.length !== expectedMedia.length) {
+      throw new Error(`Expected ${expectedMedia.length} sender media files for ${batch.ticker}`);
+    }
+    batch.media.forEach((mediaPath, index) => {
+      if (path.basename(mediaPath) !== expectedMedia[index]) {
+        throw new Error(`Unexpected sender media order for ${batch.ticker}: ${batch.media.join(",")}`);
+      }
+    });
     for (const mediaPath of batch.media) {
       if (!mediaPath.startsWith(`${artifactRoot}${path.sep}`)) {
         throw new Error(`Sender media path is outside Hermes artifacts: ${mediaPath}`);

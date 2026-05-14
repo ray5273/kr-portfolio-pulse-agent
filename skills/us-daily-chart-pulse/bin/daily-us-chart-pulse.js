@@ -150,6 +150,8 @@ function renderHermesReport(summary) {
       `MEDIA:${absFromResult(result.files.main)}`,
       `MEDIA:${absFromResult(result.files.overlay)}`,
       `MEDIA:${absFromResult(result.files.momentum)}`,
+      `MEDIA:${absFromResult(result.files.structure)}`,
+      `MEDIA:${absFromResult(result.files.pattern)}`,
       ""
     );
   }
@@ -185,7 +187,9 @@ function buildHermesSendBatches(summary) {
         media: [
           absFromResult(result.files.main),
           absFromResult(result.files.overlay),
-          absFromResult(result.files.momentum)
+          absFromResult(result.files.momentum),
+          absFromResult(result.files.structure),
+          absFromResult(result.files.pattern)
         ]
       };
     });

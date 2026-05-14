@@ -2,7 +2,7 @@
 
 Portfolio pulse agent for daily KRX and US chart pulse skills on Hermes/OpenClaw. The repository generates per-ticker chart artifacts and Telegram-ready payload files without storing or reading Telegram secrets. Delivery is delegated to Hermes.
 
-Telegram image attachments use the vendored `ray5273/stock-analysis-skill` `kr-stock-analysis` `chart-basics.js` renderer: main trend, overlay, and momentum charts.
+Telegram image attachments use the vendored `ray5273/stock-analysis-skill` `kr-stock-analysis` `chart-basics.js` renderer: main trend, overlay, momentum, structure, and pattern/wave charts.
 
 ## Quick Start
 
@@ -41,6 +41,10 @@ Each ticker directory contains:
 - `chart.png`
 - `chart-overlay.png`
 - `chart-momentum.png`
+- `chart-structure.png`
+- `chart-pattern.png`
+- `chart-structure-zones.csv`
+- `chart-pattern-waves.csv`
 - `result.json`
 
 ## CLI
@@ -200,9 +204,9 @@ hermes --accept-hooks cron run <job_id>
 hermes --accept-hooks cron tick
 ```
 
-The cron job stays as one Hermes job. Current Hermes cron sessions disable the interactive `messaging` toolset, so `scripts/hermes-send-krx-batches.py` runs as the cron pre-run script and calls Hermes' own `send_message` implementation sequentially for each ticker. Each call sends one text body plus three `MEDIA:/absolute/path/file.png` lines, which Hermes converts to native image attachments. The final cron response is local-only, for example `Sent 5/5 ticker batches`, so Telegram does not receive a duplicate final report.
+The cron job stays as one Hermes job. Current Hermes cron sessions disable the interactive `messaging` toolset, so `scripts/hermes-send-krx-batches.py` runs as the cron pre-run script and calls Hermes' own `send_message` implementation sequentially for each ticker. Each call sends one text body plus five `MEDIA:/absolute/path/file.png` lines, which Hermes converts to native image attachments. The final cron response is local-only, for example `Sent 5/5 ticker batches`, so Telegram does not receive a duplicate final report.
 
-Each successful ticker batch includes `chart.png`, `chart-overlay.png`, and `chart-momentum.png` in that order. Keep `MEDIA:` lines inside the per-ticker `send_message` body only; do not rely on final-response media extraction for Telegram delivery.
+Each successful ticker batch includes `chart.png`, `chart-overlay.png`, `chart-momentum.png`, `chart-structure.png`, and `chart-pattern.png` in that order. Keep `MEDIA:` lines inside the per-ticker `send_message` body only; do not rely on final-response media extraction for Telegram delivery.
 
 The chart renderer uses the vendored Noto Sans KR font from `ray5273/stock-analysis-skill`; high-quality Hangul rendering is performed by a repo-local Python venv at `.tmp/krx-chart-font-venv` with Pillow. The CLI creates that venv on first run and passes its Python to `chart-basics.js`. First run or `bash scripts/smoke-test.sh` may need network access to install Pillow; later runs reuse the local venv. If Pillow cannot be used and the renderer reports `external=false` or `pillow-missing`, ticker artifact generation fails instead of sending bitmap fallback Hangul charts.
 
